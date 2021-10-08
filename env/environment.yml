@@ -1,0 +1,20 @@
+channels:
+        - bioconda
+        - anaconda
+        - conda-forge
+dependencies:
+        - pbmm2
+        - python=3.7
+        - pysam
+        - pandas
+        - matplotlib
+        - pbcore
+        - seaborn
+        - mosdepth
+        - samtools
+        - mappy
+        - parallel
+        - scikit-learn
+
+
+

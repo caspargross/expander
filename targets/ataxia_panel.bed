@@ -1,0 +1,16 @@
+#Chrom	Start	End	Strand	Gene	Disease	Repeat	Rpt_Start	Rpt_End Location	Normal	Expanded	Health condition
+chr12	6924459	6942321	+	ATN1	DRPLA	CAG	6936717	6936773	6-35x	>=48x	Dentatorubral-pallidoluysian atrophy (DRPLA)
+chr6	16299112	16761490	-	ATXN1	SCA1	CAG	16327636	16327722	4-39x	40->80x	Spinocerebellar ataxia type 1 (SCA1)
+chr22	45671798	45845307	+	ATXN10	SCA10	ATTCT	45795355	45795424	9-32x	800-4500x	Spinocerebellar ataxia 10 (SCA10)
+chr12	111452214	111599676	-	ATXN2	SCA2	CAG	111598951	111599019	~22x	>=32x	Spinocerebellar ataxia type 2 (SCA2)
+chr14	92058552	92106621	-	ATXN3	SCA3	CAG	92071011	92071052	<44x	>50x	Spinocerebellar ataxia type 3 (SCA3)
+chr3	63863144	64003462	+	ATXN7	SCA7	CAG	63912686	63912715	4-35x	37-306x	Spinocerebellar ataxia 7 (SCA7)
+chr13	70107213	70139753	+	ATXN8OS 	SCA8	CTA,CTG	70139384	70139429	<50x	>80-91	Spinocerebellar ataxia 8 & Parkinson disease, late-onset
+chr16	66427295	66495288	+	BEAN1	SCA31	TGGAA	66490398	66490399		>100x	Spinocerebellar ataxia 31 (SCA31)
+chr19	13206442	13506479	-	CACNA1A	SCA6	CAG	13207859	13207897	<=18x	22-30x	Spinocerebellar ataxia type 6 (SCA6)
+chr9	69035752	69079076	+	FXN	Friedreich ataxia	GAA	69037287	69037304	<12x or 12-33x	66->1000x	Friedreich ataxia
+chr20	2652632	2658393	+	NOP56	SCA36	GGCCTG	2652734	2652757	3-14x	>650x	Spinocerebellar ataxia type 36 (SCA36)
+chr5	146580742	147081520	-	PPP2R2B	SCA12	CAG	146878729	146878758	7-28x	55-93x	Spinocerebellar ataxia 12 (SCA12)
+chr6	170554333	170572870	+	TBP	SCA17	CAG,CAA	170561908	170562021	25-42x	43-66x	Huntington disease-like 4 (HDL4) or spinocerebellar ataxia type 17 (SCA17)
+chr1	56994778	58250547	-	DAB1	SCA37	ATTTC	57367043	57367044		31-75x	Spinocerebellar ataxia 37 (SCA37)
+chr16	87601835	87698156	+	JPH3	HDL2*	CTG	87604288	87604329	28x	44-59x	Huntington disease-like (HDL) syndrome

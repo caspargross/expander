@@ -1,0 +1,16 @@
+channels:
+        - bioconda
+        - r
+        - conda-forge
+        - anaconda
+dependencies:
+        - r-base=4.1.0
+        - r-tidyverse
+        - r-vroom
+        - r-docopt
+        - r-ggrepel
+        - r-dendextend
+        - bioconductor-rsamtools
+        - bioconductor-bamsignals 
+        - bioconductor-genomicranges
+        - bioconductor-genomicalignments

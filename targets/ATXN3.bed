@@ -1,0 +1,3 @@
+#Chrom	Start	End	Strand	Gene	Disease	Repeat	Rpt_Start	Rpt_End Location	Normal	Expanded	Health condition
+chr14	92058552	92106621	-	ATXN3	SCA3	CAG	92071011	92071052	<44x	>50x	Spinocerebellar ataxia type 3 (SCA3)
+    
