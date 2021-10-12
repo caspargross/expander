@@ -3,3 +3,4 @@ scripts/RepeatAnalysisTools
 .*
 !.gitignore
 test*
+*.code-workspace

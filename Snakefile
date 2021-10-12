@@ -47,8 +47,7 @@ rule mapping:
         O = 56,       # Gap open penalty [4]
         e = 4,        # Sample a high-frequency minimizer every INT basepairs [500]
         E = 0         # Gap extension penalty [2]
-                      # -Y Enable softclipping
-        
+                      # -Y Enable softclipping  
     shell:
         """
         pbmm2 align  \
@@ -118,7 +117,7 @@ rule count_on_target:
         "scripts/countOnTarget.R"
 
 rule bam_to_fasta:
-# Very basic Bam to Fasta conversion. NO reverse complement for reads on - Strand!
+# Basic Bam to Fasta conversion. NO reverse complement for reads on negative Strand!
     input:
         bam = rules.mapping.output
     output:
@@ -167,7 +166,7 @@ rule parse_trf:
         trf = rules.trf.output,
         bam = "Sample_{sample}/{sample}.aligned.bam"
     output:
-        csv = "Sample_{sample}/{sample}.repeats.csv"
+        csv = "Sample_{sample}/{sample}.repeats_raw.csv"
     conda:
         "environment_R.yml"
     params:
@@ -177,5 +176,28 @@ rule parse_trf:
 
 rule phaseRepeats:
     input:
-        trf = 
+        csv = rules.parse_trf.output.csv
+    output:
+        csv_phased = "Sample_{sample}/{sample}.repeats.csv"
+    conda:
+        "environment_R.yml"
+    params:
+        out_prefix = "Sample_%s/%s" % wildcards.sample,
+        cluster_height = config['cluster_height'],
+        allele_cluster_height  =  config['allele_cluster_height']
+    script:
+        "scripts/phaseRepeats.R"
     
+rule plotRepeaets:
+    input:
+        csv_phased = rules.phaseRepeats.output.csv_phased
+    output:
+        directory("Sample_{sample}/plots")
+    conda:
+        "environment_R.yml"
+    params:
+        out_prefix = "Sample_%s/plots/" % wildcards.sample,
+        pdf = True,
+        jpg = False
+    script:
+        "scripts/plotRepeats.R"

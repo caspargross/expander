@@ -1,13 +1,13 @@
 
 '
-Cluster repeats and phases alleles.
+Cluster repeats and phase alleles.
 
 Usage: 
     trfOutputParser.R [options] <phased_repeats.csv>
 
 Options:
     -h, --help                              Show this screen
-    -o <out.png>, --output <out.csv>        Output filename [default: trf_repeats.csv]
+    -o <out_p>, --output <out_p>            Output prefix [default: repeat_clusters]
     -c --cluster_height                     Cutoff height for loci clusterung [default: 300]
     -a --allele_cluster_height              Minimal cutoff height for allele clustering tree [default: 1]
 ' -> doc
@@ -15,13 +15,16 @@ Options:
 if (exists('snakemake')) {
     #print(snakemake)
     repeats <- snakemake@input[['csv']]
-    outfile <- snakemake@output[['csv']]
-    outfile <- snakemake@output[['png']]
+    outp <- snakemake@params[['out_prefix']]
+    CLUSTER_HEIGHT <- snakemake@params[['cluster_height']]
+    MIN_ALLELE_CLUSTER_HEIGHT <- snakemake@params[['allele_cluster_height']]
+
 } else {
     library(docopt)
     args <- docopt(doc, version = 'Naval Fate 2.0')
     targets <- args$targets
-    outfile <- args$output
+    out_csv <- args$output
+    out_png <- args$
 }
 
 suppressMessages(library(tidyverse))

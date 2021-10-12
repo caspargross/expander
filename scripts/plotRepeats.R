@@ -8,15 +8,15 @@ Usage:
 
 Options:
     -o <out_p>, --output <out_p>    Output prefix [default: re]
-    -p, --pdf                       Create >pdf plots
+    -p, --pdf                       Create .pdf plots
     -j, --jpg                       Create .jpg plots
     -h, --help                      Show this screen
 ' -> doc
 
 if (exists('snakemake')) {
     #print(snakemake)
-    repeats <- snakemake@input[['csv']]
-    outfile <- snakemake@output[['csv']]
+    repeats <- snakemake@input[['csv_phased']]
+    out_p <- snakemake@params[['out_prefix']]
     outfile <- snakemake@output[['png']]
 } else {
     library(docopt)

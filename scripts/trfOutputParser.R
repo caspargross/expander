@@ -1,7 +1,8 @@
 #!/usr/bin/env Rscript
 
 '
-Parses the .dat Output of a TRF File and applies filters
+Parses the .dat output  files of TRF.
+Repeats are then filtered and annotated with genomic coordinates from alignment.
 
 Usage: 
     trfOutputParser.R [options] <trf.dat> <alignment.bam>
