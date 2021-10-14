@@ -20,6 +20,13 @@ if (exists('snakemake')) {
     trf <- snakemake@input[['trf']]
     filter <- snakemake@params[['filter']]
     outfile <- snakemake@output[['csv']]
+    MIN_PERIOD_SIZE = snakemake@params[['min_period']],
+    MAX_PERIOD_SIZE = snakemake@params[['max_period']],
+    MIN_COPIES_ALIGNED = snakemake@params[['min_copies']],
+    MIN_MATCHES_ADJACENT = snakemake@params[['min_match']],
+    MAX_INDELS = snakemake@params[['max_indels']],
+    MIN_ALIGNMENT_SCORE = snakemake@params[['min_score']],
+    MIN_ENTROPY = snakemake@params[['min_entropy']]
 } else {
     library(docopt)
     args <- docopt(doc, version = 'Naval Fate 2.0')
@@ -28,6 +35,13 @@ if (exists('snakemake')) {
     trf <- args$trf
     filter <- args$filter
     outfile <- args$output
+    MIN_PERIOD_SIZE = 3
+    MAX_PERIOD_SIZE = 7
+    MIN_COPIES_ALIGNED = 5
+    MIN_MATCHES_ADJACENT = 50
+    MAX_INDELS = 30
+    MIN_ALIGNMENT_SCORE = 50
+    MIN_ENTROPY = 0.5
 }
 
 suppressMessages(library(tidyverse))
@@ -54,14 +68,6 @@ trf_colnames <- c(
     "flanking_downstream",
     "flanking_upstream"
     )
-
-MIN_PERIOD_SIZE = 3
-MAX_PERIOD_SIZE = 7
-MIN_COPIES_ALIGNED = 5
-MIN_MATCHES_ADJACENT = 50
-MAX_INDELS = 30
-MIN_ALIGNMENT_SCORE = 50
-MIN_ENTROPY = 0.5
 
 parse_trf <- function(dat_file) {
 # Parses the TRF .dat File line by line
