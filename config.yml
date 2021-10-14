@@ -1,0 +1,39 @@
+# Default parameterset for Expander
+# Minimap 2 parameters (based on PacBio Repeat expansion script)
+mm2.r: 10000  # bandwidth for inital chaining and base alignment extension [500]
+mm2.A: 2      # matching score [2]
+mm2.B: 5      # mismatching penalty [4]
+mm2.z: 400    # truncate alignment if diagonal score in DP matrix drops below z [400]
+mm2.Z: 50     # not documentend in minimap2 man
+mm2.O: 56     # gap open penalty [4]
+mm2.e: 4      # sample a high-frequency minimizer every INT basepairs [500]
+mm2.E: 0      # gap extension penalty [2]
+mm2.Y: true   # -Y enable softclipping  
+
+# Tandem repeat finder parameters
+trf.match: 2      # matching weight
+trf.mismatch: 7   # mismatching penalty
+trf.delta: 7      # indel penalty
+trf.pm: 80        # match probability (int)
+trf.pi: 10        # indel probabilty (int)
+trf.minscore: 50  # minimum alignment score to report
+trf.maxperiod: 10 # maximum period size to report
+
+# Repeat filters (after TRF)
+# Corresponds to columns of TRF output: https://blaxter-lab-documentation.readthedocs.io/en/latest/trf.html#program-outputs
+f.min_period : 3         # minimum length of repeat
+f.max_period : 7         # maximum length of repeat motif 
+f.min_copies : 5         # minimum number of aligned repeat motifs
+f.min_match:  50          # minimum percent of matches between adjacent copies overall
+f.max_indels: 30        # maximum percent of indels between adjacent copies overall
+f.min_score:  50          # min alignment score of repeat sequence
+f.min_entropy: 0.5         # min sequence entropy of repeat sequence
+
+# Clustering options
+clust.height: 500      # Clustering height (distance) to bin reads into different locu 
+clust.allele_height: 5   # Min clusterring height to bin reads into different alleles (will increase if >3)
+
+# Plot options
+pdf : true
+png: true
+jpg: false

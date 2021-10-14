@@ -14,13 +14,16 @@ targets = { '21020Ia049_ataxia_PacBio' : 'targets/ataxia_panel.bed',
     '21020Ia044_ATXN3_IDT' : 'targets/ATXN3.bed',
     '21020Ia048_ATXN3_PacBio_low' : 'targets/ATXN3.bed'}
 
+# Load config
+configfile: srcdir("config.yml")
+
 rule all:
     input:
         expand("Sample_{sample}/{sample}.aligned.bam", sample = WC.sample),
         expand("Sample_{sample}/{sample}_coverage.pdf", sample = WC.sample),
         expand("Sample_{sample}/RepeatExpansionTool", sample = WC.sample),
         expand("Sample_{sample}/{sample}_on_target_count.csv", sample = WC.sample),
-        expand("Sample_{sample}/{sample}.repeats.csv", sample = WC.sample)
+        expand("Sample_{sample}/{sample}.phased.csv", sample = WC.sample)
 
 def get_demuxed_files(wc):
     i = WC.sample.index(wc.sample)
@@ -34,20 +37,20 @@ rule mapping:
     output:
         "Sample_{sample}/{sample}.aligned.bam"
     conda:
-        "environment.yml"
+        "env/pb_tools.yml"
     threads: 8
     params:
         ref = ref_genome,
         # Following parameterset is taken from PacBio Repeat Expansion Scripts
-        r = 10000,    # Bandwidth for inital chaining and base alignment extension [500]
-        A = 2,        # Matching score [2]
-        B = 5,        # Mismatching penalty [4]
-        z = 400,      # Truncate alignment if diagonal score in DP matrix drops below z [400]
-        Z = 50,       # Not documentend in minimap2 man
-        O = 56,       # Gap open penalty [4]
-        e = 4,        # Sample a high-frequency minimizer every INT basepairs [500]
-        E = 0         # Gap extension penalty [2]
-                      # -Y Enable softclipping  
+        r = config['mm2.r'],     # Bandwidth for inital chaining and base alignment extension [500]
+        A = config['mm2.A'],     # Matching score [2]
+        B = config['mm2.B'],     # Mismatching penalty [4]
+        z = config['mm2.z'],     # Truncate alignment if diagonal score in DP matrix drops below z [400]
+        Z = config['mm2.Z'],     # Not documentend in minimap2 man
+        O = config['mm2.O'],     # Gap open penalty [4]
+        e = config['mm2.e'],     # Sample a high-frequency minimizer every INT basepairs [500]
+        E = config['mm2.E'],     # Gap extension penalty [2]
+        Y = "-Y" if config['mm2.Y'] else ""  # -Y Enable softclipping  REMOVED
     shell:
         """
         pbmm2 align  \
@@ -60,7 +63,6 @@ rule mapping:
             -O {params.O} \
             -e {params.e} \
             -E {params.E} \
-            -Y \
             --sort \
             --sample {wildcards.sample} \
             {input} {params.ref} {output}
@@ -73,7 +75,7 @@ rule mosdepth_reads:
     output:
         "Sample_{sample}/coverage/{sample}.per-base.bed.gz"
     conda:
-        "environment.yml"
+        "env/pb_tools.yml"
     params:
         target = lambda wildcards: targets[wildcards.sample]
     threads:
@@ -93,7 +95,7 @@ rule plot_coverage:
     output:
         plot = "Sample_{sample}/{sample}_coverage.pdf"
     conda:
-        "environment_R.yml"
+        "env/R.yml"
     params:
         target = lambda wildcards: targets[wildcards.sample]
     threads:
@@ -107,7 +109,7 @@ rule count_on_target:
     output:
         out = "Sample_{sample}/{sample}_on_target_count.csv"
     conda:
-        "environment_R.yml"
+        "env/R.yml"
     params:
         target = lambda wildcards: targets[wildcards.sample],
         filter = ""
@@ -126,6 +128,8 @@ rule bam_to_fasta:
         target = lambda wildcards: targets[wildcards.sample]
     threads:
         1
+    conda:
+        "env/pb_tools.yml"
     shell:
         """
         samtools view -L {params.target} {input} | \
@@ -138,16 +142,16 @@ rule trf:
     output:
         "Sample_{sample}/{sample}.trf.dat"
     params:
-        match = 2,
-        mismatch = 7,
-        delta = 7,
-        pm = 80,
-        pi = 10,
-        minscore = 50,
-        maxperiod = 10
+        match = config['trf.match'],
+        mismatch = config['trf.mismatch'],
+        delta = config['trf.delta'],
+        pm = config['trf.pm'],
+        pi = config['trf.pi'],
+        minscore = config['trf.minscore'],
+        maxperiod = config['trf.maxperiod']
     threads: 1
     conda:
-        "environment_trf.yml"
+        "env/trf.yml"
     shell:
         """
         trf {input} \
@@ -168,9 +172,10 @@ rule parse_trf:
     output:
         csv = "Sample_{sample}/{sample}.repeats_raw.csv"
     conda:
-        "environment_R.yml"
+        "env/R.yml"
     params:
-        target = lambda wildcards: targets[wildcards.sample]
+        target = lambda wildcards: targets[wildcards.sample],
+
     script:
         "scripts/trfOutputParser.R"
 
@@ -178,26 +183,24 @@ rule phaseRepeats:
     input:
         csv = rules.parse_trf.output.csv
     output:
-        csv_phased = "Sample_{sample}/{sample}.repeats.csv"
+        csv_phased = "Sample_{sample}/{sample}.phased.csv"
     conda:
-        "environment_R.yml"
+        "env/R.yml"
     params:
-        out_prefix = "Sample_%s/%s" % wildcards.sample,
-        cluster_height = config['cluster_height'],
-        allele_cluster_height  =  config['allele_cluster_height']
+        out_prefix = "Sample_{sample}/{sample}",
+        ch = config['clust.height'],
+        ach = config['clust.allele_height']
     script:
         "scripts/phaseRepeats.R"
     
-rule plotRepeaets:
+rule plotRepeats:
     input:
         csv_phased = rules.phaseRepeats.output.csv_phased
     output:
         directory("Sample_{sample}/plots")
     conda:
-        "environment_R.yml"
+        "env/R.yml"
     params:
-        out_prefix = "Sample_%s/plots/" % wildcards.sample,
-        pdf = True,
-        jpg = False
+        out_prefix = "Sample_{sample}/{sample}"
     script:
         "scripts/plotRepeats.R"
