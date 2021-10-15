@@ -175,7 +175,13 @@ rule parse_trf:
         "env/R.yml"
     params:
         target = lambda wildcards: targets[wildcards.sample],
-
+        min_period = config['f.min_period'],
+        max_period = config['f.max_period'],
+        min_copies = config['f.min_copies'],
+        min_match  = config['f.min_match'],
+        max_indels = config['f.max_indels'],
+        min_score  = config['f.min_score'],
+        min_entropy= config['f.min_entropy']
     script:
         "scripts/trfOutputParser.R"
 
@@ -197,7 +203,8 @@ rule plotRepeats:
     input:
         csv_phased = rules.phaseRepeats.output.csv_phased
     output:
-        directory("Sample_{sample}/plots")
+        plots = directory("Sample_{sample}/{sample}_repeat_summary.csv")
+        csv = "Sample_{sample}/{sample}_repeat_summary.csv"
     conda:
         "env/R.yml"
     params:

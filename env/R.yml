@@ -10,6 +10,7 @@ dependencies:
         - r-docopt
         - r-ggrepel
         - r-dendextend
+        - r-stringdist
         - bioconductor-rsamtools
         - bioconductor-bamsignals 
         - bioconductor-genomicranges

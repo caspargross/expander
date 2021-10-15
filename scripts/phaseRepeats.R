@@ -36,6 +36,7 @@ if (exists('snakemake')) {
 
 suppressMessages(library(tidyverse))
 suppressMessages(library(dendextend))
+#suppressMessages(library(stringdist))
 
 dt <- read_csv(repeats) 
 
@@ -67,6 +68,7 @@ cluster_alleles <- function(dt) {
     tryCatch( {
         clusters <- dt %>% 
                 select(n_copies_aligned, consensus_sequence, repeat_end) %>%
+#               stringdistmatrix %>%
                 dist %>%
                 hclust
 
@@ -103,9 +105,7 @@ dt_phased <- dt %>%
 
 # Write output table
 dt_phased %>% 
-    select("rname", "pos", "repeat_start", "locus", "n_copies_aligned", "consensus_sequence", "allele", "seq_name", "repeat_sequence") %>% 
+    select("rname", "pos", "repeat_start", "locus", "n_copies_aligned", "consensus_sequence", "allele", "seq_name", "repeat_sequence", "repeat_end") %>% 
     write_csv(paste0(out_p, ".phased.csv"))
 
 #TODO Annotate Repeats if target file exists
-
-

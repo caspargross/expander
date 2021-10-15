@@ -49,7 +49,7 @@ if (jpg) ggsave(paste0(SAMPLE,"_repeat_lengths.jpg"), p = p_rl)
 
 plot_waterfall <- function(dts) {
 # Create waterfall plot
-dts <- dt_phased %>% select(c("seq_name", "allele", "repeat_start", "repeat_end", "consensus_sequence", "size_consensus_pattern","repeat_sequence")) %>% 
+dts <- dt_phased %>% select(c("seq_name", "allele", "repeat_start", "repeat_end", "consensus_sequence", "repeat_sequence")) %>% 
     arrange(desc(repeat_end)) %>%
     mutate(seq_name = factor(seq_name, unique(seq_name))) %>%
     mutate(repeat_matches = str_locate_all(repeat_sequence, consensus_sequence)) %>%
@@ -73,6 +73,7 @@ if (pdf) ggsave(paste0(SAMPLE,"_repeat_lengths.png"), width = 15, plot = p_wf)
 if (jpg) ggsave(paste0(SAMPLE,"_repeat_lengths.png"), width = 15, plot = p_wf)
 }
 
-dt_phased <- read_csv(
+dt_phased <- read_csv(repeats)
+
 plot_repeat_lengths(dt_phased)
 plot_waterfall(dt_phased)
