@@ -58,10 +58,6 @@ out_table <- targ %>%
     mutate(read_count = bamCount(alignment, gr_targ)) %>%
     select(c(gene, location, length, read_count))
 
-#out_table <- out_table %>%    
-#    mutate(expected = ((read_count/length)/(bam_stats$records/genome_length))) %>%
-#    mutate(enrichment = read_count/expected) 
-
 out_table <- out_table %>%    
     mutate(target_read_density  = (read_count/length)) %>%
     mutate(all_read_density= bam_stats$records/genome_length) %>%
