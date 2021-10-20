@@ -5,20 +5,22 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: snakemake/snakemake-github-action@v1.23.0
       - name: Linting
+        uses: snakemake/snakemake-github-action@v1.23.0
         with:
           directory: '.test/integration'
           snakefile: 'Snakefile'
           args: '--lint'
 
       - name: WithoutTargets
+        uses: snakemake/snakemake-github-action@v1.23.0
         with: 
           directory: '.test/integration'
           snakefile: 'Snakefile'
           args: '--cores 1 --use-conda --conda-cleanup-pkgs cache'
 
       - name: WithTargets
+        uses: snakemake/snakemake-github-action@v1.23.0
         with: 
           directory: '.test/integration'
           snakefile: 'Snakefile'
