@@ -1,35 +1,45 @@
-ref_genome = "/mnt/share/data/genomes/GRCh38.fa"
-
-WC = glob_wildcards('Sample_{sample}/demultiplex.{barcode1}--{barcode2}.bam')
-
-#print(WC)
-
-targets = { '21020Ia049_ataxia_PacBio' : 'targets/ataxia_panel.bed',
-    '21020Ia049_ATXN3_PacBio' : 'targets/ATXN3.bed',
-    '21020Ia048_ATXN3_PacBio' : 'targets/ATXN3.bed',
-    '21020Ia049_ATXN3_IDT' : 'targets/ATXN3.bed',
-    '21020Ia044_ataxia_PacBio' : 'targets/ataxia_panel.bed',
-    '21020Ia048_ATXN3_IDT' : 'targets/ATXN3.bed',
-    '21020Ia044_ATXN3_PacBio' : 'targets/ATXN3.bed',
-    '21020Ia044_ATXN3_IDT' : 'targets/ATXN3.bed',
-    '21020Ia048_ATXN3_PacBio_low' : 'targets/ATXN3.bed'}
+import csv
+import os
+import pathlib
+from glob import glob
 
 # Load config
 configfile: srcdir("config.yml")
 
+# Parse sample targets FOFN
+samples = set()
+targets = dict()
+if  os.path.isfile(config['sample_targets']):
+    with open(config['sample_targets']) as f:
+        reader=csv.reader(f, delimiter="\t")
+        for row in reader:
+            if len(row) == 2:
+                samples.add(row[0])
+                targets[row[0]] = row[1]
+            else :
+                print("Wrong number of columns in row: ", row, len(row))
+                pass
+
+# If no FOFN available, check dir for folders with "Sample_" prefix
+else:
+    wc, = glob_wildcards('Sample_{sample}/')
+    samples =  [sample for sample in wc if '/' not in sample]
+    for sample in samples:
+        targets[sample]=False
+
+print(samples)
+print(targets)
+
 rule all:
     input:
-        expand("Sample_{sample}/{sample}.aligned.bam", sample = WC.sample),
-        expand("Sample_{sample}/{sample}_coverage.pdf", sample = WC.sample),
-        expand("Sample_{sample}/RepeatExpansionTool", sample = WC.sample),
-        expand("Sample_{sample}/{sample}_on_target_count.csv", sample = WC.sample),
-        expand("Sample_{sample}/{sample}.phased.csv", sample = WC.sample)
+        expand("Sample_{sample}/{sample}.aligned.bam", sample = samples),
+        expand("Sample_{sample}/{sample}_coverage.pdf", sample = samples),
+        expand("Sample_{sample}/{sample}_on_target_count.tsv", sample = samples),
+        expand("Sample_{sample}/{sample}.phased.csv", sample = samples)
 
 def get_demuxed_files(wc):
-    i = WC.sample.index(wc.sample)
-    bc1 = WC.barcode1[i]
-    bc2 = WC.barcode2[i]
-    return("Sample_"+ wc.sample + "/demultiplex."+bc1+"--"+bc2+".consensusreadset.xml")
+    pb_xml = glob('Sample_'+wc.sample+'/*.consensusreadset.xml')
+    return(pb_xml)
     
 rule mapping:
     input:
@@ -40,7 +50,7 @@ rule mapping:
         "env/pb_tools.yml"
     threads: 8
     params:
-        ref = ref_genome,
+        ref = config['ref_genome'],
         # Following parameterset is taken from PacBio Repeat Expansion Scripts
         r = config['mm2.r'],     # Bandwidth for inital chaining and base alignment extension [500]
         A = config['mm2.A'],     # Matching score [2]
@@ -77,13 +87,13 @@ rule mosdepth_reads:
     conda:
         "env/pb_tools.yml"
     params:
-        target = lambda wildcards: targets[wildcards.sample]
+        target = lambda wildcards: "" if not targets[wildcards.sample] else "--by " + targets[wildcards.sample]
     threads:
         3
     shell:
         """
         mosdepth \
-            --by {params.target} \
+            {params.target} \
             --threads {threads} \
             "Sample_{wildcards.sample}/coverage/{wildcards.sample}" \
             {input}
@@ -107,7 +117,7 @@ rule count_on_target:
     input:
         bam = rules.mapping.output
     output:
-        out = "Sample_{sample}/{sample}_on_target_count.csv"
+        out = "Sample_{sample}/{sample}_on_target_count.tsv"
     conda:
         "env/R.yml"
     params:
@@ -125,14 +135,14 @@ rule bam_to_fasta:
     output:
         "Sample_{sample}/{sample}.onTarget.fasta"
     params:
-        target = lambda wildcards: targets[wildcards.sample]
+        target = lambda wildcards: "" if not targets[wildcards.sample] else "-L" + targets[wildcards.sample]
     threads:
         1
     conda:
         "env/pb_tools.yml"
     shell:
         """
-        samtools view -L {params.target} {input} | \
+        samtools view {params.target} {input} | \
         awk '{{OFS="\\t"; print ">"$1"\\n"$10}}' > {output} 
         """
 
@@ -195,7 +205,8 @@ rule phaseRepeats:
     params:
         out_prefix = "Sample_{sample}/{sample}",
         ch = config['clust.height'],
-        ach = config['clust.allele_height']
+        ach = config['clust.allele_height'],
+        plot_clusters = False
     script:
         "scripts/phaseRepeats.R"
     
@@ -203,7 +214,7 @@ rule plotRepeats:
     input:
         csv_phased = rules.phaseRepeats.output.csv_phased
     output:
-        plots = directory("Sample_{sample}/{sample}_repeat_summary.csv")
+        plots = directory("Sample_{sample}/plots"),
         csv = "Sample_{sample}/{sample}_repeat_summary.csv"
     conda:
         "env/R.yml"

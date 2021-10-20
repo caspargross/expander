@@ -1,4 +1,7 @@
 # Default parameterset for Expander
+ref_genome: "/mnt/share/data/genomes/GRCh38.fa"
+sample_targets: "sample_targets.tsv"
+
 # Minimap 2 parameters (based on PacBio Repeat expansion script)
 mm2.r: 10000  # bandwidth for inital chaining and base alignment extension [500]
 mm2.A: 2      # matching score [2]
@@ -24,10 +27,10 @@ trf.maxperiod: 10 # maximum period size to report
 f.min_period : 3         # minimum length of repeat
 f.max_period : 7         # maximum length of repeat motif 
 f.min_copies : 5         # minimum number of aligned repeat motifs
-f.min_match:  50          # minimum percent of matches between adjacent copies overall
-f.max_indels: 30        # maximum percent of indels between adjacent copies overall
-f.min_score:  50          # min alignment score of repeat sequence
-f.min_entropy: 0.5         # min sequence entropy of repeat sequence
+f.min_match:  50         # minimum percent of matches between adjacent copies overall
+f.max_indels: 30         # maximum percent of indels between adjacent copies overall
+f.min_score:  50         # min alignment score of repeat sequence
+f.min_entropy: 0.5       # min sequence entropy of repeat sequence
 
 # Clustering options
 clust.height: 500      # Clustering height (distance) to bin reads into different locu 
