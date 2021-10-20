@@ -8,7 +8,7 @@ jobs:
       - name: Linting
         uses: snakemake/snakemake-github-action@v1.23.0
         with:
-          snakefile: 'Snakefile'
+          snakefile: '../Snakefile'
           args: '--lint'
 
       - name: WithoutTargets
