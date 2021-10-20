@@ -8,7 +8,6 @@ jobs:
       - name: Linting
         uses: snakemake/snakemake-github-action@v1.23.0
         with:
-          directory: '.test/integration'
           snakefile: 'Snakefile'
           args: '--lint'
 
@@ -16,12 +15,12 @@ jobs:
         uses: snakemake/snakemake-github-action@v1.23.0
         with: 
           directory: '.test/integration'
-          snakefile: 'Snakefile'
+          snakefile: '../../Snakefile'
           args: '--cores 1 --use-conda --conda-cleanup-pkgs cache'
 
       - name: WithTargets
         uses: snakemake/snakemake-github-action@v1.23.0
         with: 
           directory: '.test/integration'
-          snakefile: 'Snakefile'
+          snakefile: '../../Snakefile'
           args: '--config sample_targets=test_targets.tsv --cores 1 --use-conda --conda-cleanup-pkgs cache'
