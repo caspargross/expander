@@ -14,7 +14,6 @@ Options:
     -s <sample>, --sample <sample>      Samplename
 ' -> doc
 
-
 if (exists('snakemake')) {
     #print(snakemake)
     cov.bed.gz <- snakemake@input[['cov']]
@@ -35,12 +34,10 @@ if (exists('snakemake')) {
 suppressMessages(library(tidyverse))
 suppressMessages(library(vroom))
 suppressMessages(library(ggrepel))
-
 cov <- vroom(cov.bed.gz,  
     col_types = c('f', 'i', 'i', 'i'), 
     col_names = c('chr', 'start', 'end', 'cov')) %>%
     filter(chr %in% c(paste0('chr', 1:22), 'chrX', 'chrY'))
-
 cov_long <- cov %>%
     pivot_longer(c("start", "end"), names_to = "location", values_to = "position")
 
@@ -60,7 +57,9 @@ p1 <- ggplot() +
         x = element_blank(),
         y = paste(sample, "Read Cov") )
 
-if (!is.null(targets)) {
+if (targets != FALSE) {
+    print("Trying to load targets")
+
     targ <- read_tsv(targets,
         col_names = c('chr', 'start', 'end', 'strand', 'gene', 'disease', 'repeat_start', 'repeat_end', 'location', 'normal', 'expanded', 'health_condition'),
         col_types = 'fiicccciiccc',

@@ -1,6 +1,5 @@
 Sample*
-scripts/RepeatAnalysisTools
-.*
-!.gitignore
-test*
+scripts/Re
+peatAnalysisTools
+.snakemake
 *.code-workspace

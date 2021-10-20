@@ -34,8 +34,8 @@ rule all:
     input:
         expand("Sample_{sample}/{sample}.aligned.bam", sample = samples),
         expand("Sample_{sample}/{sample}_coverage.pdf", sample = samples),
-        expand("Sample_{sample}/{sample}_on_target_count.tsv", sample = samples),
-        expand("Sample_{sample}/{sample}.phased.csv", sample = samples)
+        expand("Sample_{sample}/{sample}.phased.csv", sample = samples),
+        expand("Sample_{sample}/{sample}_on_target_count.tsv", sample = [x for x in samples if targets[x] is not False]),
 
 def get_demuxed_files(wc):
     pb_xml = glob('Sample_'+wc.sample+'/*.consensusreadset.xml')

@@ -7,11 +7,12 @@ Usage:
 
 Options:
     -h, --help                              Show this screen
-    -t <t.bed>, --targets <t.bed>           Target file used to annotate reads
+    -t <targ.bed>, --targets <targ.bed>     Target file used to annotate reads
     -o <out_p>, --output <out_p>            Output prefix [default: repeat_clusters]
     -c --cluster_height                     Cutoff height for loci clusterung [default: 300]
     -a --allele_cluster_height              Minimal cutoff height for allele clustering tree [default: 1]
     -s --sample                             Sample name [default: basename inputfile]
+    -p --plot_allele_clusters               Add plot for separate allele clusters
 ' -> doc
 
 if (exists('snakemake')) {
@@ -22,6 +23,7 @@ if (exists('snakemake')) {
     CLUSTER_HEIGHT <- snakemake@params[['ch']]
     MIN_ALLELE_CLUSTER_HEIGHT <- snakemake@params[['ach']]
     sample <- snakemake@wildcards[['sample']]
+    plot_allele_clusters <- snakemake@params[['plot_clusters']]
 
 } else {
     library(docopt)
@@ -32,6 +34,7 @@ if (exists('snakemake')) {
     CLUSTER_HEIGHT <- args$'cluster_height'
     MIN_ALLELE_CLUSTER_HEIGHT <- args$'allele_cluster_height'
     sample <- tools::file_path_sans_ext(basename(repeats))
+    plot_allele_clusters <- args$'plot_allele_clusters'
 }
 
 suppressMessages(library(tidyverse))
@@ -83,6 +86,18 @@ cluster_alleles <- function(dt) {
             }
             
             dt <- add_column(dt, allele = as.factor(cutree(clusters, h = h)))
+
+            if (plot_allele_clusters) {
+                d <- as.dendrogram(clusters)
+                pdf(paste0(out_p, dt$locus[[1]], ".allele_clusters.pdf"), width = 12, height = 7)
+                dend %>%
+                color_branches(h= CLUSTER_HEIGHT) %>%
+                raise.dendrogram(1) %>%
+                set("labels", "") %>% 
+                plot(main = paste("Clustered reads for ", dt$locus[[1]]))
+                dend %>% rect.dendrogram(h= CLUSTER_HEIGHT, cluster = dt$locus, border = 8, lty = 8)
+                dev.off()
+            }
     
         },
         error=function(cond) {
@@ -105,7 +120,7 @@ dt_phased <- dt %>%
 
 # Write output table
 dt_phased %>% 
-    select("rname", "pos", "repeat_start", "locus", "n_copies_aligned", "consensus_sequence", "allele", "seq_name", "repeat_sequence", "repeat_end") %>% 
+    select("rname", "pos", "repeat_start", "locus", "n_copies_aligned", "consensus_sequence", "size_consensus_pattern", "allele", "seq_name", "repeat_sequence", "repeat_end") %>% 
     write_csv(paste0(out_p, ".phased.csv"))
 
-#TODO Annotate Repeats if target file exists
+

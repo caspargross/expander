@@ -14,17 +14,21 @@ Options:
 ' -> doc
 
 if (exists('snakemake')) {
-    #print(snakemake)
     repeats <- snakemake@input[['csv_phased']]
     out_p <- snakemake@params[['out_prefix']]
     outfile <- snakemake@output[['png']]
+    pdf <- as.logical(snakemake@output[['pdf']])
+    jpg <- as.logical(snakemake@output[['jpg']])
 } else {
     library(docopt)
     args <- docopt(doc, version = 'Naval Fate 2.0')
-    targets <- args$targets
+    repeats <- args$'<phased_repeats.csv>'
     outfile <- args$output
+    pdf <- args$pdf
+    jpg <- args$jpg
 }
 
+SAMPLE <- "21020Ia049_ATXN3"
 suppressMessages(library(tidyverse))
 suppressMessages(library(dendextend))
 
@@ -42,7 +46,7 @@ p_rl <- ggplot(dt, aes(x = floor((repeat_end - repeat_start)/3), fill = allele )
     theme_bw() +
     labs(x="Motif repeats")
 
-ggsave(paste0(SAMPLE,"_repeat_lengths.png"), p = p_rl)
+ggsave(paste0(SAMPLE,"_repeat_lengths.png"))
 if (pdf) ggsave(paste0(SAMPLE,"_repeat_lengths.pdf"), p = p_rl)
 if (jpg) ggsave(paste0(SAMPLE,"_repeat_lengths.jpg"), p = p_rl)
 } 

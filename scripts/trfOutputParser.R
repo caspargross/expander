@@ -20,12 +20,12 @@ if (exists('snakemake')) {
     trf <- snakemake@input[['trf']]
     filter <- snakemake@params[['filter']]
     outfile <- snakemake@output[['csv']]
-    MIN_PERIOD_SIZE = snakemake@params[['min_period']],
-    MAX_PERIOD_SIZE = snakemake@params[['max_period']],
-    MIN_COPIES_ALIGNED = snakemake@params[['min_copies']],
-    MIN_MATCHES_ADJACENT = snakemake@params[['min_match']],
-    MAX_INDELS = snakemake@params[['max_indels']],
-    MIN_ALIGNMENT_SCORE = snakemake@params[['min_score']],
+    MIN_PERIOD_SIZE = snakemake@params[['min_period']]
+    MAX_PERIOD_SIZE = snakemake@params[['max_period']]
+    MIN_COPIES_ALIGNED = snakemake@params[['min_copies']]
+    MIN_MATCHES_ADJACENT = snakemake@params[['min_match']]
+    MAX_INDELS = snakemake@params[['max_indels']]
+    MIN_ALIGNMENT_SCORE = snakemake@params[['min_score']]
     MIN_ENTROPY = snakemake@params[['min_entropy']]
 } else {
     library(docopt)
