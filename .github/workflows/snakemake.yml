@@ -1,26 +1,42 @@
-name: snakemake_test
-on: push
+name: Tests
+
+on: 
+  push:
+    branches: [ main]
+  pull_request:
+    branches: [ master ]
+
 
 jobs:
-  build:
+  Linting:
     runs-on: ubuntu-latest
     steps:
-      - name: Linting
-        uses: snakemake/snakemake-github-action@v1.23.0
-        with:
-          snakefile: '../Snakefile'
-          args: '--lint'
+        - uses: actions/checkout@v2
+        - name: Lint workflow
+          uses: snakemake/snakemake-github-action@v1.23.0
+          with:
+            directory: .
+            args: '--lint'
 
-      - name: WithoutTargets
-        uses: snakemake/snakemake-github-action@v1.23.0
-        with: 
-          directory: '.test/integration'
-          snakefile: '../../Snakefile'
-          args: '--cores 1 --use-conda --conda-cleanup-pkgs cache'
+  Testing:
+    runs-on: ubuntu-latest
+    steps:
+        - uses: actions/checkout@v2
 
-      - name: WithTargets
-        uses: snakemake/snakemake-github-action@v1.23.0
-        with: 
-          directory: '.test/integration'
-          snakefile: '../../Snakefile'
-          args: '--config sample_targets=test_targets.tsv --cores 1 --use-conda --conda-cleanup-pkgs cache'
+        - name: Test without target
+          uses: snakemake/snakemake-github-action@v1.23.0
+          with:
+            directory: '.test/integration'
+            args: '--cores 1 --use-conda  --conda-frontend mamba'
+
+        - name: Clean output
+          uses: snakemake/snakemake-github-action@v1.23.0
+          with:
+            directory: '.test/integration'
+            args: 'all --delete-all-output --cores 1'
+
+        - name: Test with targets
+          uses: snakemake/snakemake-github-action@v1.23.0
+          with: 
+            directory: '.test/integration'
+            args: '--config sample_targets=test_targets.tsv --cores 1 --use-conda --conda-cleanup-pkgs cache'
