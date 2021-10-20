@@ -1,3 +1,5 @@
+name: snakemake_test
+on: push
 - name: Linting
   uses: snakemake/snakemake-github-action@v1.23.0
   with:
