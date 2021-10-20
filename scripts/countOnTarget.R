@@ -58,9 +58,14 @@ out_table <- targ %>%
     mutate(read_count = bamCount(alignment, gr_targ)) %>%
     select(c(gene, location, length, read_count))
 
+#out_table <- out_table %>%    
+#    mutate(expected = ((read_count/length)/(bam_stats$records/genome_length))) %>%
+#    mutate(enrichment = read_count/expected) 
+
 out_table <- out_table %>%    
-    mutate(expected = ((read_count/length)/(bam_stats$records/genome_length))) %>%
-    mutate(enrichment = read_count/expected) 
+    mutate(target_read_density  = (read_count/length)) %>%
+    mutate(all_read_density= bam_stats$records/genome_length) %>%
+    mutate(enrichment_factor = target_read_density/all_read_density)
 
 out_table <- out_table %>%
     add_row(gene = "#OFFTARGET", 
@@ -69,4 +74,4 @@ out_table <- out_table %>%
         read_count = bam_stats$records - sum(target_count)) %>%
     mutate(read_percentage = read_count *100 / bam_stats$records)
 
-write_tsv(out_table, outfile)
+write_tsv(out_table %>% select("gene", "location", "length", "read_count", "enrichment_factor", "read_percentage"), outfile)
