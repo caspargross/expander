@@ -65,16 +65,18 @@ parse_cigar <- function(c) {
 
 cluster_alleles <- function(dt) {
 # Assign allelles
-# Cluster by repeat length (n_copies_aligned and genomic repeat_end)
+# Cluster by repeat length (n_copies_aligned and genomic repeat end)
     tryCatch( {
         clusters <- dt %>% 
-                select(n_copies_aligned, repeat_start_genomic + (repeat_end - repeat_start)) %>%
+                mutate(genomic_repeat_end = repeat_start_genomic + repeat_length) %>%
+                select(n_copies_aligned, genomic_repeat_end) %>%
                 dist %>%
                 hclust
-
+    
             h <- MIN_ALLELE_CLUSTER_HEIGHT
             n_clusters <- max(cutree(clusters, h=h))
-            
+
+            print(n_clusters)        
             # Increase cutoff until a maximum of 2 cluster (= allelles) was found
             while (n_clusters > 2) {
                 h <- h+(h*0.5)
@@ -85,24 +87,24 @@ cluster_alleles <- function(dt) {
             dt <- add_column(dt, allele = as.factor(cutree(clusters, h = h)))
 
             if (plot_allele_clusters) {
+
                 d <- as.dendrogram(clusters)
-                pdf(paste0(out_p, dt$locus[[1]], ".allele_clusters.pdf"), width = 12, height = 7)
-                dend %>%
-                color_branches(h= CLUSTER_HEIGHT) %>%
+                pdf(paste0(out_p,".", dt$locus_id[[1]], ".allele_clusters.pdf"), width = 12, height = 7)
+                d %>%
+                color_branches(h= h) %>%
                 raise.dendrogram(1) %>%
                 set("labels", "") %>% 
-                plot(main = paste("Clustered reads for ", dt$locus[[1]]))
-                dend %>% rect.dendrogram(h= CLUSTER_HEIGHT, cluster = dt$locus, border = 8, lty = 8)
+                plot(main = paste("Clustered reads for ", dt$locus_id[[1]]))
+                d %>% rect.dendrogram(h= h, cluster = dt$allele, border = 8, lty = 8)
                 dev.off()
             }
     
         },
         error=function(cond) {
-            message(paste("Cannot cluster for loci", dt$locus[[1]]))
+            message(paste("Cannot cluster for loci", dt$locus_id[[1]]))
             message("Here's the original error message:")
             message(cond)
             # Choose a return value in case of error
-            dt <- add_column(dt, allele=1)
             return(dt)
         },
         finally={
@@ -131,6 +133,34 @@ qpos_to_rpos <- function(cigar, qpos){
     return(unname(rpos))
 }
 
+get_gene <- function (rnames, positions){
+# Extracts gene name from target bed for chr and position
+r <- names(sort(table(as.character(rnames)),decreasing=TRUE)[1])
+p <- median(positions)
+    gene <- targ %>% 
+        filter(as.character(chr) == r) %>%
+        filter(start < p) %>%
+        filter(end > p) %>%
+        pull(gene)
+
+    gene <- ifelse(length(gene)>0, gene, "unassigned")
+    return(gene)
+}
+
+get_locus_id <- function(dt){
+# Generates locus identifier 
+# Format: chr1_1231554_GCA_{ATXN1}
+    r <- names(sort(table(as.character(dt$rname)),decreasing=TRUE)[1])
+    p <- median(dt$repeat_start_genomic)
+    s <- names(sort(table(as.character(dt$consensus_sequence)),decreasing=TRUE)[1])
+    if (target != FALSE) {
+        g <- names(sort(table(as.character(dt$gene)),decreasing=TRUE)[1])
+        locus_id <- paste(r, p, s, g, sep="_")
+    } else {
+        locus_id <- paste(r, p, s, sep="_")
+    }
+    return(locus_id)
+}
 
 # ---------------------- #
 #         Program        #
@@ -155,6 +185,7 @@ if (target != FALSE){
 # Correct start positions
 dt <- dt %>% 
     rowwise %>%
+    mutate(repeat_length = repeat_end - repeat_start) %>%
     mutate(`repeat_start_genomic` = (qpos_to_rpos(cigar, repeat_start) + pos))
 
 # Cluster repeats
@@ -171,27 +202,12 @@ dt <- dt %>%
     mutate(`locus` = as.factor(cutree(clust, h = CLUSTER_HEIGHT)))
 print(paste(length(levels(dt$locus)), "Repeat groups found"))
 
-# Annotate with target file
-dt %>%
-    group_by(locus) %>%
-    rowwise %>%
-    mutate(gene = get_gene(rname, median(repeat_start_genomic))) %>%
-    select(pos, rname, gene)
-
-get_gene <- function (r, p){
-# Extracts gene name from target bed for chr and position
-    gene <- targ %>% 
-        filter(as.character(chr) == as.character(r)) %>%
-        filter(start < p) %>%
-        filter(end > p) %>%
-        pull(gene)
-
-    gene <- ifelse(length(gene)>0, gene, "unassigned")
-    return(gene)
-}
-
-
+# Annotate with target gene and
 # Create repeat locus id, either with target file or unique location/repeat name
+dt <- dt %>%
+    group_by(locus) %>%
+    mutate(gene = get_gene(rname, repeat_start_genomic)) %>%
+    mutate(locus_id = get_locus_id(.data)) 
 
 # Plot cluster Dendrogram
 dend <- as.dendrogram(clust)
@@ -212,7 +228,5 @@ dt_phased <- dt %>%
 
 # Write output table
 dt_phased %>% 
-    select("rname", "repeat_start_genomic", "repeat_start", "locus", "n_copies_aligned", "consensus_sequence", "size_consensus_pattern", "allele", "seq_name", "repeat_sequence", "repeat_end") %>% 
+    select("locus_id", "rname", "repeat_start_genomic", "repeat_sequence", "gene", "n_copies_aligned", "repeat_length", "allele", "consensus_sequence", "seq_name", "repeat_sequence", "repeat_length") %>% 
     write_csv(paste0(out_p, ".phased.csv"))
-
-

@@ -47,7 +47,6 @@ if (exists('snakemake')) {
 suppressMessages(library(tidyverse))
 suppressMessages(library(GenomicRanges))
 suppressMessages(library(Rsamtools))
-suppressMessages(library(bamsignals))
 
 trf_colnames <- c(
     "repeat_start",

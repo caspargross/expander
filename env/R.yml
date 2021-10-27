@@ -11,6 +11,7 @@ dependencies:
         - r-ggrepel
         - r-dendextend
         - r-stringdist
+        - r-cluster
         - bioconductor-rsamtools
         - bioconductor-bamsignals 
         - bioconductor-genomicranges
