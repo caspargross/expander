@@ -76,7 +76,6 @@ cluster_alleles <- function(dt) {
             h <- MIN_ALLELE_CLUSTER_HEIGHT
             n_clusters <- max(cutree(clusters, h=h))
 
-            print(n_clusters)        
             # Increase cutoff until a maximum of 2 cluster (= allelles) was found
             while (n_clusters > 2) {
                 h <- h+(h*0.5)
@@ -230,5 +229,5 @@ dt_phased <- dt %>%
 
 # Write output table
 dt_phased %>% 
-    select("locus_id", "rname", "repeat_start_genomic", "repeat_sequence", "gene", "n_copies_aligned", "repeat_length", "allele", "consensus_sequence", "seq_name", "repeat_sequence", "repeat_length") %>% 
+    select("locus_id", "rname", "repeat_start_genomic", "consensus_sequence", "gene", "n_copies_aligned", "repeat_length", "allele", "seq_name", "repeat_sequence", "repeat_length") %>% 
     write_csv(paste0(out_p, ".phased.csv"))

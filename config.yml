@@ -33,7 +33,7 @@ f.min_score:  50         # min alignment score of repeat sequence
 f.min_entropy: 0.5       # min sequence entropy of repeat sequence
 
 # Clustering options
-clust.height: 0.4      # Clustering height (distance) to bin reads into different locu 
+clust.height: 0.05      # Clustering height (distance) to bin reads into different locu 
 clust.allele_height: 5   # Min clusterring height to bin reads into different alleles (will increase if >3)
 
 # Plot options

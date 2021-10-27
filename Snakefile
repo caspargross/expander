@@ -27,14 +27,12 @@ else:
     for sample in samples:
         targets[sample]=False
 
-print(samples)
-print(targets)
-
 rule all:
     input:
         expand("Sample_{sample}/{sample}.aligned.bam", sample = samples),
         expand("Sample_{sample}/{sample}_coverage.pdf", sample = samples),
         expand("Sample_{sample}/{sample}.phased.csv", sample = samples),
+        expand("Sample_{sample}/plot", sample = samples),
         expand("Sample_{sample}/{sample}_on_target_count.tsv", sample = [x for x in samples if targets[x] is not False]),
 
 def get_demuxed_files(wc):
@@ -215,11 +213,10 @@ rule plotRepeats:
     input:
         csv_phased = rules.phaseRepeats.output.csv_phased
     output:
-        plots = directory("Sample_{sample}/plots"),
-        csv = "Sample_{sample}/{sample}_repeat_summary.csv"
+        plots = directory("Sample_{sample}/plot")
     conda:
         "env/R.yml"
     params:
-        out_prefix = "Sample_{sample}/{sample}"
+        out_prefix = "Sample_{sample}/plot/{sample}"
     script:
         "scripts/plotRepeats.R"
