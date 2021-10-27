@@ -206,7 +206,8 @@ rule phaseRepeats:
         out_prefix = "Sample_{sample}/{sample}",
         ch = config['clust.height'],
         ach = config['clust.allele_height'],
-        plot_clusters = False
+        plot_clusters = config['plot_allele_clusters'],
+        target = lambda wildcards: targets[wildcards.sample]
     script:
         "scripts/phaseRepeats.R"
     

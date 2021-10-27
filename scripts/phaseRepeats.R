@@ -19,7 +19,7 @@ if (exists('snakemake')) {
     #print(snakemake)
     repeats <- snakemake@input[['csv']]
     out_p <- snakemake@params[['out_prefix']]
-    target <- snakemake@params[['targets']]
+    target <- snakemake@params[['target']]
     CLUSTER_HEIGHT <- snakemake@params[['ch']]
     MIN_ALLELE_CLUSTER_HEIGHT <- snakemake@params[['ach']]
     sample <- snakemake@wildcards[['sample']]
@@ -133,11 +133,11 @@ qpos_to_rpos <- function(cigar, qpos){
     return(unname(rpos))
 }
 
-get_gene <- function (rnames, positions){
+get_gene <- function (rnames, positions, targets){
 # Extracts gene name from target bed for chr and position
 r <- names(sort(table(as.character(rnames)),decreasing=TRUE)[1])
 p <- median(positions)
-    gene <- targ %>% 
+    gene <- targets %>% 
         filter(as.character(chr) == r) %>%
         filter(start < p) %>%
         filter(end > p) %>%
@@ -206,7 +206,9 @@ print(paste(length(levels(dt$locus)), "Repeat groups found"))
 # Create repeat locus id, either with target file or unique location/repeat name
 dt <- dt %>%
     group_by(locus) %>%
-    mutate(gene = get_gene(rname, repeat_start_genomic)) %>%
+    mutate(gene = ifelse ((target != FALSE), 
+        get_gene(rname, repeat_start_genomic, targets = targ),
+        "unassigned")) %>%
     mutate(locus_id = get_locus_id(.data)) 
 
 # Plot cluster Dendrogram
