@@ -73,13 +73,6 @@ dts <- dt %>%
     rowwise() %>%
     mutate(w = nchar(as.character(consensus_sequence)))
 
-# Create a minimum number of blank lines in plot
-min_plot_lines <- 30
-seqs <- unique(dts$seq_name)
-n_blank <- max(0, min_plot_lines - length(seqs))
-blank <- paste0("blank_" , as.character(1:n_blank))
-seqs <- c(seqs, blank)
-
 # Add sequence chars to the plot
 dtt <- dt %>% 
     mutate(repeat_sequence = strsplit(repeat_sequence, split="")) %>%
@@ -87,14 +80,6 @@ dtt <- dt %>%
     group_by(seq_name) %>%
     mutate(x = row_number() + repeat_start_genomic) %>%
     summarise(x, repeat_sequence, allele)  %>% as.data.frame()
-
-dt %>% 
-    mutate(repeat_sequence = strsplit(repeat_sequence, split="")) %>%
-    unnest(repeat_sequence) %>%
-    group_by(seq_name) %>%
-    mutate(x = row_number() + repeat_start_genomic) %>%
-    summarise(x, repeat_sequence, allele) %>%
-    str()
 
 p_wf <- ggplot() +
     #geom_blank(aes(y = seqs)) +
@@ -122,9 +107,15 @@ p_wf <- ggplot() +
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         panel.grid.major.y = element_blank(),
-        panel.grid.minor.y = element_blank())
+        panel.grid.minor.y = element_blank(),
+        legend.position="bottom")
 
-ggsave(paste(out_p,dts$locus_id[[1]],"waterfall",ext, sep="."), width = 15, plot = p_wf)
+ggsave(paste(out_p,dts$locus_id[[1]],"waterfall",ext, sep="."),
+    width = 2500,
+    height = min(300 + nrow(dts)*9, 5000),
+    units = "px",
+    scale = 0.8,
+    plot = p_wf)
 return(dts)
 }
 

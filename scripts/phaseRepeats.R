@@ -189,10 +189,11 @@ dt <- dt %>%
 
 # Cluster repeats
 # Use "gower" clustering for mixed datatypes with factors and numeric values
-# Use location information (Chromosome and genomci repeat start) only for loci
+# Use location information (Chromosome and genomic repeat start) for loci location
+# Use nucleotide content to account for rotated repeat motifs AAATA <-> AATAA 
 clust <- dt %>% 
-    dplyr::select(rname, repeat_start_genomic) %>%
-    cluster::daisy(., metric = "gower") %>%
+    dplyr::select(rname, repeat_start_genomic, percent_C, percent_G, percent_T, percent_A) %>%
+    cluster::daisy(., metric = "gower", weights = c(1, 0.8, 0.25, 0.25, 0.25, 0.25)) %>%
     hclust()
 
 # Assign repeat categories
