@@ -205,7 +205,8 @@ rule phaseRepeats:
         ch = config['clust.height'],
         ach = config['clust.allele_height'],
         plot_clusters = config['plot_allele_clusters'],
-        target = lambda wildcards: targets[wildcards.sample]
+        target = lambda wildcards: targets[wildcards.sample],
+        min_reads = config['f.min_reads']
     script:
         "scripts/phaseRepeats.R"
     

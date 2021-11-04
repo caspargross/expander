@@ -13,6 +13,7 @@ Options:
     -a --allele_cluster_height              Minimal cutoff height for allele clustering tree [default: 1]
     -s --sample                             Sample name [default: basename inputfile]
     -p --plot_allele_clusters               Add plot for separate allele clusters
+    -n --min_reads                          Minimum number of reads per cluster [default: 4]
 ' -> doc
 
 if (exists('snakemake')) {
@@ -24,6 +25,7 @@ if (exists('snakemake')) {
     MIN_ALLELE_CLUSTER_HEIGHT <- snakemake@params[['ach']]
     sample <- snakemake@wildcards[['sample']]
     plot_allele_clusters <- snakemake@params[['plot_clusters']]
+    MIN_READS <- snakemake@params[['min_reads']]
 
 } else {
     library(docopt)
@@ -35,6 +37,7 @@ if (exists('snakemake')) {
     MIN_ALLELE_CLUSTER_HEIGHT <- args$'allele_cluster_height'
     sample <- tools::file_path_sans_ext(basename(repeats))
     plot_allele_clusters <- args$'plot_allele_clusters'
+    MIN_READS <- args$'min_reads'
 }
 
 # ---------------------- #
@@ -65,51 +68,49 @@ parse_cigar <- function(c) {
 
 cluster_alleles <- function(dt) {
 # Assign allelles
-# Cluster by repeat length (n_copies_aligned and genomic repeat end)
+# Cluster by repeat length (n_copies_aligned, genomic_repeat_start and genomic repeat end)
     tryCatch( {
         clusters <- dt %>% 
                 mutate(genomic_repeat_end = repeat_start_genomic + repeat_length) %>%
-                select(n_copies_aligned, genomic_repeat_end) %>%
+                select(n_copies_aligned, genomic_repeat_end, repeat_start_genomic) %>%
                 dist %>%
                 hclust
     
-            h <- MIN_ALLELE_CLUSTER_HEIGHT
-            n_clusters <- max(cutree(clusters, h=h))
+        h <- MIN_ALLELE_CLUSTER_HEIGHT
+        n_clusters <- max(cutree(clusters, h=h))
 
-            # Increase cutoff until a maximum of 2 cluster (= allelles) was found
-            while (n_clusters > 2) {
-                h <- h+(h*0.5)
-                #print(paste("Cutting tree with h = ", h, "N clust", n_clusters))
-                n_clusters <- max(cutree(clusters, h = h))
-            }
-            
-            dt <- add_column(dt, allele = as.factor(cutree(clusters, h = h)))
-
-            if (plot_allele_clusters) {
-
-                d <- as.dendrogram(clusters)
-                pdf(paste0(out_p,".", dt$locus_id[[1]], ".allele_clusters.pdf"), width = 12, height = 7)
-                d %>%
-                color_branches(h= h) %>%
-                raise.dendrogram(1) %>%
-                set("labels", "") %>% 
-                plot(main = paste("Clustered reads for ", dt$locus_id[[1]]))
-                d %>% rect.dendrogram(h= h, cluster = dt$allele, border = 8, lty = 8)
-                dev.off()
-            }
-    
-        },
-        error=function(cond) {
-            message(paste("Cannot cluster for loci", dt$locus_id[[1]]))
-            message("Here's the original error message:")
-            message(cond)
-            # Choose a return value in case of error
-            return(dt)
-        },
-        finally={
-            return(dt)
+        # Increase cutoff until a maximum of 2 cluster (= allelles) was found
+        while (n_clusters > 2) {
+            h <- h+(h*0.5)
+            #print(paste("Cutting tree with h = ", h, "N clust", n_clusters))
+            n_clusters <- max(cutree(clusters, h = h))
         }
-    )
+        
+        dt <- add_column(dt, allele = as.factor(cutree(clusters, h = h)))
+
+        if (plot_allele_clusters) {
+
+            d <- as.dendrogram(clusters)
+            pdf(paste0(out_p,".", dt$locus_id[[1]], ".allele_clusters.pdf"), width = 12, height = 7)
+            d %>%
+            color_branches(h= h) %>%
+            raise.dendrogram(1) %>%
+            set("labels", "") %>% 
+            plot(main = paste("Clustered reads for ", dt$locus_id[[1]]))
+            d %>% rect.dendrogram(h= h, cluster = dt$allele, border = 8, lty = 8)
+            dev.off()
+        }
+    },
+    error=function(cond) {
+        message(paste("Cannot cluster for loci", dt$locus_id[[1]]))
+        message("Here's the original error message:")
+        message(cond)
+        # Choose a return value in case of error
+        return(dt)
+    },
+    finally={
+        return(dt)
+    })
 }
 
 qpos_to_rpos <- function(cigar, qpos){ 
@@ -222,6 +223,18 @@ dend %>%
 dend %>% rect.dendrogram(h= CLUSTER_HEIGHT, cluster = dt$locus, border = 8, lty = 8)
 colored_bars(colors = as.numeric(factor(dt$rname)), dend = dend, rowLabels = "chr")
 dev.off()
+
+# Filter out cluster with low number of reads
+dt <- dt %>%
+    group_by(locus_id) %>%
+    filter(n() >= MIN_READS ) %>%
+    ungroup()
+
+# Filter out multiple loci on the same read and location, take only read with most copies
+dt <- dt %>%
+    group_by(locus_id) %>%
+    group_by(seq_name) %>%
+    filter(n() == 1 || n_copies_aligned == max(n_copies_aligned))
 
 # Cluster alleles
 dt_phased <- dt %>% 

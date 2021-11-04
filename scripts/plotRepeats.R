@@ -110,18 +110,18 @@ p_wf <- ggplot() +
         panel.grid.minor.y = element_blank(),
         legend.position="bottom")
 
-ggsave(paste(out_p,dts$locus_id[[1]],"waterfall",ext, sep="."),
+ggsave(paste(out_p,dt$locus_id[[1]],"waterfall",ext, sep="."),
     width = 2500,
-    height = min(300 + nrow(dts)*9, 5000),
+    height = min(300 + nrow(dt)*70, 5000),
     units = "px",
-    scale = 0.8,
+    scale = 1.2,
     plot = p_wf)
-return(dts)
+return(dt)
 }
 
 dt_phased <- read_csv(repeats, col_types = "fcfnfcnnfcc")
 
 dt_phased %>%
     group_by(locus) %>%
-#    group_modify(~plot_repeat_lengths(.x)) %>%
+    group_modify(~plot_repeat_lengths(.x)) %>%
     group_modify(~plot_waterfall(.x))
