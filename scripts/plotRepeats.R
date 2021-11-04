@@ -36,13 +36,28 @@ dir.create(dirname(out_p))
 
 
 plot_repeat_lengths <- function(dt) {
+
+# Calculate plot limits for nice and uniform display
+WMIN <- 50
+PADDING <- 5
+xmin <- min(dt$repeat_length) - PADDING
+xmax <- max(dt$repeat_length) + PADDING
+if ((xmax - xmin) < WMIN) {
+    delta <- floor(WMIN - (xmax - xmin))
+    xmin <- xmin - floor(delta/2)
+    xmax <- xmax + floor(delta/2)
+}
+
+print(c(xmin, xmax))
 # Plot repeat length histogram
 title = dt$locus_id[[1]]
-p_rl <- ggplot(dt, aes(x = repeat_length, fill = allele )) +
-    geom_histogram(aes(color = allele), color = "grey20", binwidth = 1) +
+p_rl <- ggplot(dt, aes(x = repeat_length, fill = as.factor(allele))) +
+    geom_histogram(color = "grey20", binwidth = 1) +
     ggtitle(title) +
     theme_bw() +
-    labs(x="Motif repeats")
+    xlim(xmin, xmax) + 
+    scale_fill_brewer(palette = "Set3") +
+    labs(x="Motif repeats", y="Read count", fill = "Allele")
 
 ggsave(paste(out_p,dt$locus_id[[1]],"repeat_lengths",ext, sep="."), plot = p_rl)
 #if (png) ggsave(paste0(out_p,".repeat_lengths.png"), p = p_rl)
@@ -61,25 +76,39 @@ dts <- dts %>%
     rowwise() %>%
     mutate(w = nchar(consensus_sequence)) 
 
+# Create a minimum number of blank lines in plot
+min_plot_lines <- 30
+seqs <- unique(dts$seq_name)
+n_blank <- max(0, min_plot_lines - length(seqs))
+blank <- paste0("blank_" , as.character(1:n_blank))
+seqs <- c(seqs, blank)
+
 p_wf <- ggplot() +
+    geom_blank(aes(y = seqs)) +
     geom_tile(data = dts, aes(
             y = seq_name,
-            height=0.9 ,
-            x= x ,
+            x= x,
             width = w,
             fill = consensus_sequence,
+            height=0.9 
             ),
         color = "grey20",
         size = 0.2) +
     theme_bw() +
     ggtitle(dts$locus_id[[1]]) + 
-    theme(axis.text.y = element_blank())
+    theme(
+        axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank())
 
 ggsave(paste(out_p,dts$locus_id[[1]],"waterfall",ext, sep="."), width = 15, plot = p_wf)
 return(dts)
 }
 
-dt_phased <- read_csv(repeats)
+dt_phased <- read_csv(repeats, col_types = "fcfnccnnfcc")
 
 dt_phased %>%
     group_by(locus) %>%
