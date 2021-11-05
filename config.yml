@@ -34,7 +34,7 @@ f.min_entropy: 0.5       # min sequence entropy of repeat sequence
 f.min_reads: 4           # minimum number of reads in the same repeat cluster
 
 # Clustering options
-clust.height: 0.03      # Clustering height (distance) to bin reads into different locu 
+clust.height: 0.06      # Clustering height (distance) to bin reads into different locu 
 clust.allele_height: 6   # Min clusterring height to bin reads into different alleles (will increase if >3)
 
 # Plot options
