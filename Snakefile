@@ -30,7 +30,7 @@ else:
 rule all:
     input:
         expand("Sample_{sample}/{sample}.aligned.bam", sample = samples),
-        expand("Sample_{sample}/{sample}_coverage.pdf", sample = samples),
+#        expand("Sample_{sample}/{sample}_coverage.png", sample = samples),
         expand("Sample_{sample}/{sample}.phased.csv", sample = samples),
         expand("Sample_{sample}/plot", sample = samples),
         expand("Sample_{sample}/{sample}_on_target_count.tsv", sample = [x for x in samples if targets[x] is not False]),
@@ -101,7 +101,7 @@ rule plot_coverage:
     input:
         cov = rules.mosdepth_reads.output
     output:
-        plot = "Sample_{sample}/{sample}_coverage.pdf"
+        plot = "Sample_{sample}/{sample}_coverage.png"
     conda:
         "env/R.yml"
     params:
@@ -129,7 +129,7 @@ rule count_on_target:
 rule bam_to_fasta:
 # Basic Bam to Fasta conversion. NO reverse complement for reads on negative Strand!
     input:
-        bam = rules.mapping.output
+        "Sample_{sample}/{sample}.aligned.bam"
     output:
         "Sample_{sample}/{sample}.onTarget.fasta"
     params:

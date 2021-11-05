@@ -52,7 +52,7 @@ op_consumes <- list(
     'D' = c("q"=0, "r"=1),
     'N' = c("q"=0, "r"=1),
     'S' = c("q"=1, "r"=0),
-    'H' = c("q"=0, "r"=0),
+    'H' = c("q"=1, "r"=0),  #Changed!
     'P' = c("q"=0, "r"=0),
     '=' = c("q"=1, "r"=1),
     'X' = c("q"=1, "r"=1)
@@ -186,7 +186,14 @@ if (target != FALSE){
 dt <- dt %>% 
     rowwise %>%
     mutate(repeat_length = repeat_end - repeat_start) %>%
-    mutate(`repeat_start_genomic` = (qpos_to_rpos(cigar, repeat_start) + pos))
+    mutate(`repeat_start_genomic` = (qpos_to_rp os(cigar, repeat_start) + pos))
+
+d <- dt %>% 
+    rowwise %>%
+    mutate(repeat_length = repeat_end - repeat_start) %>%
+    select(cigar, repeat_start, pos) %>%
+    head() %>%
+    as.data.frame()
 
 # Cluster repeats
 # Use "gower" clustering for mixed datatypes with factors and numeric values

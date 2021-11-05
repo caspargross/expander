@@ -131,8 +131,16 @@ parse_bam <- function(bam, target=FALSE){
        gr_targ = GRanges()
     }
 
-    param <- ScanBamParam(which=gr_targ, what=c("qname", "rname", "strand", "pos", "qwidth", "cigar", "seq"))
-    aln <- scanBam(bam, param=param)
+    # Only read primary alignments!!
+    param <- ScanBamParam(
+        which=gr_targ,
+        what=c("qname", "rname", "strand", "pos", "qwidth", "cigar", "seq"),
+        flag = scanBamFlag(isSecondaryAlignment = FALSE),
+        mapqFilter = 1)
+
+    b <- BamFile(bam, paste0(bam, ".bai"))
+
+    aln <- scanBam(b, param=param)
     return(aln[[1]])
 }
 

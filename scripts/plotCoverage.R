@@ -10,7 +10,7 @@ Options:
     -h, --help                          Show this screen
     -t <bedfile>, --targets <bedfile>   Annotate target regions from Bedfile
     -o <outfile>, --output <outfile>    Output filename (*.png, *.pdf, *.jpg)
-                                        [default: coverage_plot.pdf]
+                                        [default: coverage_plot.png]
     -s <sample>, --sample <sample>      Samplename
 ' -> doc
 
