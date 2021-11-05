@@ -84,9 +84,12 @@ dtt <-
     mutate(x = row_number() + repeat_start_genomic) %>%
     summarise(x, repeat_sequence, allele, consensus_sequence)  %>% as.data.frame()
 
+mypal <- function(n) {
+    p <- colorRampPalette(RColorBrewer::brewer.pal(9, "Set3"))(length(n))
+    #c <- sample(p, length(n))
+    return(p)
+}
 set.seed(123)
-mypal <- function(n) colorRampPalette(RColorBrewer::brewer.pal(9, "Set3"))(n)
-
 p_wf <- 
     ggplot() +
     geom_text(data = dtt, 
@@ -105,10 +108,13 @@ p_wf <-
         color = "grey20",
         height = 0.9,
         size = 0.2) +
+    scale_fill_manual(
+        values = mypal(levels(dt$consensus_sequence)),
+        limits = levels(dt$consensus_sequence),
+        drop = TRUE) +
     labs(x = "genomic position", y = "reads") +
     ggtitle(dts$locus_id[[1]]) + 
     facet_grid(rows = vars(allele), space = "free_y", scales = "free_y") +
-    scale_fill_manual(values = mypal) +
     theme_bw() +
     theme(
         axis.text.y = element_blank(), 
