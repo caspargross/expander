@@ -12,6 +12,7 @@ dependencies:
         - r-dendextend
         - r-stringdist
         - r-cluster
+        - r-rcolorbrewer
         - bioconductor-rsamtools
         - bioconductor-bamsignals 
         - bioconductor-genomicranges

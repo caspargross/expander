@@ -41,16 +41,21 @@ cov <- vroom(cov.bed.gz,
 cov_long <- cov %>%
     pivot_longer(c("start", "end"), names_to = "location", values_to = "position")
 
+# Chromosome color palette
+odd <- colorRampPalette(RColorBrewer::brewer.pal(8, "Paired")[1:4])(15)
+even <- colorRampPalette(RColorBrewer::brewer.pal(8, "Paired")[5:8])(15)
+chr_colours <- as.vector(rbind(odd, even))
+
 p1 <- ggplot() +
-    geom_step(data= cov_long, aes(x=position, y = cov)) +
- #   geom_rect(data = targ, aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf), fill = "blue", alpha = 0.2) +
+    geom_step(data= cov_long, aes(x=position, y = cov, color = chr)) +
+ #  geom_rect(data = targ, aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf), fill = "blue", alpha = 0.2) +
     facet_grid(cols = vars(chr), scales = "free_x", space = "free_x", switch = "x") + 
+    scale_color_discrete(type = chr_colours, guide = "none") + 
     theme_classic() + 
     theme(
         axis.text.x = element_blank(),
         axis.ticks = element_blank(),
         strip.text = element_text(size =7),
-#        plot.margin = unit(c(0,0,0,0), "pt"),
         panel.spacing = unit(0, "pt"),
         ) +
     labs(
@@ -75,5 +80,3 @@ if (targets != FALSE) {
 }
 
 ggsave(filename = outfile, plot = p1,  width = 15, height = 4)
-
-#Chrom	Start	End	Strand	Gene	Disease	Repeat	Rpt_Start	Rpt_End Location	Normal	Expanded	Health condition

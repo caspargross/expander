@@ -48,7 +48,8 @@ if ((xmax - xmin) < WMIN) {
 
 # Plot repeat length histogram
 title = dt$locus_id[[1]]
-p_rl <- ggplot(dt, aes(x = repeat_length, fill = as.factor(allele))) +
+p_rl <- 
+    ggplot(dt, aes(x = repeat_length, fill = as.factor(allele))) +
     geom_histogram(color = "grey20", binwidth = 1) +
     ggtitle(title) +
     theme_bw() +
@@ -64,7 +65,8 @@ return(dt)
 
 plot_waterfall <- function(dt) {
 # Create waterfall plot
-dts <- dt %>% 
+dts <- 
+    dt %>% 
     arrange(desc(repeat_start_genomic + repeat_length)) %>%
     mutate(seq_name = factor(seq_name, unique(seq_name))) %>%
     mutate(repeat_matches = str_locate_all(repeat_sequence, as.character(consensus_sequence))) %>%
@@ -74,33 +76,40 @@ dts <- dt %>%
     mutate(w = nchar(as.character(consensus_sequence)))
 
 # Add sequence chars to the plot
-dtt <- dt %>% 
+dtt <- 
+    dt %>% 
     mutate(repeat_sequence = strsplit(repeat_sequence, split="")) %>%
     unnest(repeat_sequence) %>%
     group_by(seq_name) %>%
     mutate(x = row_number() + repeat_start_genomic) %>%
-    summarise(x, repeat_sequence, allele)  %>% as.data.frame()
+    summarise(x, repeat_sequence, allele, consensus_sequence)  %>% as.data.frame()
 
-p_wf <- ggplot() +
-    #geom_blank(aes(y = seqs)) +
-    geom_text(data = dtt, aes(
+set.seed(123)
+mypal <- colorRampPalette(RColorBrewer::brewer.pal(9, "Set3"))
+
+p_wf <- 
+    ggplot() +
+    geom_text(data = dtt, 
+        aes(
             y = seq_name,
             x=x,
-            label = repeat_sequence)) +
-    geom_tile(data= dts, aes(
+            label = repeat_sequence)
+        ) +
+    geom_tile(data=dts, 
+        aes(
             y = seq_name,
             x=x,
-            width = w,  
             fill = consensus_sequence,
-            height=0.9 
-            ),
+            width =w
+        ),
         color = "grey20",
+        height = 0.9,
         size = 0.2) +
-    theme_bw() +
+    labs(x = "genomic position", y = "reads") +
     ggtitle(dts$locus_id[[1]]) + 
-#   scale_fill_brewer(palette = "Set3", limits = levels(dt_phased$consensus_sequence)) +
-    scale_fill_brewer(palette = "Set3") +
     facet_grid(rows = vars(allele), space = "free_y", scales = "free_y") +
+    scale_fill_discrete(type = mypal(length(levels(dts$consensus_sequence))+2)) +
+    theme_bw() +
     theme(
         axis.text.y = element_blank(), 
         axis.ticks.y = element_blank(),
