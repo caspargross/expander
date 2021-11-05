@@ -1,0 +1,2 @@
+#Chrom	Start	End	Strand	Gene	Disease	Repeat	Rpt_Start	Rpt_End Location	Normal	Expanded	Health condition
+chr1	149390750	149390909	-	NOTCH2NLC	NIID	CGG	149390903	149390843	<20x	>50x	Neuronal Intranuclear Inclusion Disease-Related Retinopathy
