@@ -140,7 +140,7 @@ rule bam_to_fasta:
         "env/pb_tools.yml"
     shell:
         """
-        samtools view {params.target} {input} | \
+        samtools view -F 260 -q2 {params.target} {input} | \
         awk '{{OFS="\\t"; print ">"$1"\\n"$10}}' > {output} 
         """
 
