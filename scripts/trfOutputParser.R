@@ -118,9 +118,10 @@ read_part <- function(txt, read_name){
     return(tbl)
 }
 
-parse_bam <- function(bam, target=FALSE){
+parse_bam <- function(bam){
 # Parses bam file to extract aligned positions
-    if (target != FALSE){
+    if (targets != FALSE){
+        print(paste0("Loading targets from ", targets))
         targ <- read_tsv(targets,
         col_names = c('chr', 'start', 'end', 'strand', 'gene', 'disease', 'repeat_start', 'repeat_end', 'location', 'normal', 'expanded', 'health_condition'),
         col_types = 'fiicccciiccc',
@@ -135,11 +136,12 @@ parse_bam <- function(bam, target=FALSE){
     param <- ScanBamParam(
         which=gr_targ,
         what=c("qname", "rname", "strand", "pos", "qwidth", "cigar", "seq"),
-        flag = scanBamFlag(isSecondaryAlignment = FALSE),
+        flag = scanBamFlag(isSupplementaryAlignment = FALSE),
         mapqFilter = 1)
 
     b <- BamFile(bam, paste0(bam, ".bai"))
 
+ #   print(paste("Parsing bamfile", bam, "with parameters: ", param))
     aln <- scanBam(b, param=param)
     return(aln[[1]])
 }
