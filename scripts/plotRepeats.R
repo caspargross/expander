@@ -33,9 +33,10 @@ suppressMessages(library(tidyverse))
 suppressMessages(library(dendextend))
 
 dir.create(dirname(out_p))
-plot_repeat_lengths <- function(dt) {
 
-# Calculate plot limits for nice and uniform display
+plot_repeat_lengths <- function(dt) {
+# Create repeat lengths plot
+# Calculate plot limits for uniform display
 WMIN <- 50
 PADDING <- 5
 xmin <- min(dt$repeat_length) - PADDING
@@ -45,17 +46,21 @@ if ((xmax - xmin) < WMIN) {
     xmin <- xmin - floor(delta/2)
     xmax <- xmax + floor(delta/2)
 }
+binw <- 1
+if ((xmax - xmin) > 200)
+binw <- 6
 
 # Plot repeat length histogram
 title = dt$locus_id[[1]]
 p_rl <- 
     ggplot(dt, aes(x = repeat_length, fill = as.factor(allele))) +
-    geom_histogram(color = "grey20", binwidth = 1) +
-    ggtitle(title) +
+    geom_histogram(color = "grey20", binwidth = binw) +
+    ggtitle(title) + 
+#    geom_density() +
     theme_bw() +
     xlim(xmin, xmax) + 
     scale_fill_brewer(palette = "Set3") +
-    labs(x="Motif repeats", y="Read count", fill = "Allele")
+    labs(x="Repeat length (bp)", y="Read count", fill = "Allele")
 
 ggsave(paste(out_p,dt$locus_id[[1]],"repeat_lengths",ext, sep="."), plot = p_rl)
 #if (png) ggsave(paste0(out_p,".repeat_lengths.png"), p = p_rl)
@@ -111,7 +116,7 @@ p_wf <-
     scale_fill_manual(
         values = mypal(levels(dt$consensus_sequence)),
         limits = levels(dt$consensus_sequence),
-        drop = TRUE) +
+        drop = FALSE) +
     labs(x = "genomic position", y = "reads") +
     ggtitle(dts$locus_id[[1]]) + 
     facet_grid(rows = vars(allele), space = "free_y", scales = "free_y") +
@@ -126,7 +131,7 @@ p_wf <-
         legend.position="bottom")
 
 ggsave(paste(out_p,dt$locus_id[[1]],"waterfall",ext, sep="."),
-    width = 2500,
+    width = min(2500, max(dt$repeat_length)*10),
     height = min(300 + nrow(dt)*70, 5000),
     units = "px",
     scale = 1.2,

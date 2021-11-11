@@ -71,10 +71,12 @@ cluster_alleles <- function(dt) {
 # Cluster by repeat length (n_copies_aligned, genomic_repeat_start and genomic repeat end)
     tryCatch( {
         clusters <- dt %>% 
+                ungroup %>% 
                 mutate(genomic_repeat_end = repeat_start_genomic + repeat_length) %>%
                 select(n_copies_aligned, genomic_repeat_end, repeat_start_genomic) %>%
-                dist %>%
+                cluster::daisy(., metric = "euclidean", weights = c(1, 0.2, 0.2), stand = T) %>%
                 hclust
+
     
         h <- MIN_ALLELE_CLUSTER_HEIGHT
         n_clusters <- max(cutree(clusters, h=h))
@@ -186,14 +188,7 @@ if (target != FALSE){
 dt <- dt %>% 
     rowwise %>%
     mutate(repeat_length = repeat_end - repeat_start) %>%
-    mutate(`repeat_start_genomic` = (qpos_to_rp os(cigar, repeat_start) + pos))
-
-d <- dt %>% 
-    rowwise %>%
-    mutate(repeat_length = repeat_end - repeat_start) %>%
-    select(cigar, repeat_start, pos) %>%
-    head() %>%
-    as.data.frame()
+    mutate(`repeat_start_genomic` = (qpos_to_rpos(cigar, repeat_start) + pos))
 
 # Cluster repeats
 # Use "gower" clustering for mixed datatypes with factors and numeric values
@@ -204,11 +199,21 @@ clust <- dt %>%
     cluster::daisy(., metric = "gower", weights = c(1, 0.8, 0.25, 0.25, 0.25, 0.25)) %>%
     hclust()
 
+#c <- dt %>%
+#    group_by(rname) %>%
+#    summarise(c = list(hclust(dist(cbind(
+#        repeat_start,
+#        percent_C,
+#        percent_G,
+#        percent_T,
+#        percent_A)
+#    ))))
+
 # Assign repeat categories
 dt <- dt %>%
     ungroup %>%
     mutate(`locus` = as.factor(cutree(clust, h = CLUSTER_HEIGHT)))
-print(paste(length(levels(dt$locus)), "Repeat groups found"))
+
 
 # Annotate with target gene and
 # Create repeat locus id, either with target file or unique location/repeat name
@@ -233,9 +238,12 @@ dev.off()
 
 # Filter out cluster with low number of reads
 dt <- dt %>%
-    group_by(locus_id) %>%
+    group_by(locus) %>%
     filter(n() >= MIN_READS ) %>%
+    mutate(locus = droplevels(locus)) %>%
     ungroup()
+
+print(paste(length(levels(dt$locus)), "Repeat groups found"))
 
 # Filter out multiple loci on the same read and location, take only read with most copies
 dt <- dt %>%
