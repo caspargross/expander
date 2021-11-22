@@ -1,0 +1,5 @@
+#Chrom	Start	End	Strand	Gene	Disease	Repeat	Rpt_Start	Rpt_End Location	Normal	Expanded	Health condition
+chr9	69035752	69079076	+	FXN	Friedreich ataxia	GAA	69037287	69037304	<12x or 12-33x	66->1000x	Friedreich ataxia
+chr14	92058552	92106621	-	ATXN3	SCA3	CAG	92071011	92071052	<44x	>50x	Spinocerebellar ataxia type 3 (SCA3)
+chr9	27544546	27575866	-	C9orf72	FTD/ALS	GGGGCC	27573524	27573545	<5x	>10x	TLD/ALS
+chr4	39285456	39368381	-	RFC1	ataxia	AAAAG	999919	99999	<5x	>10x	TLD/ALS
