@@ -9,17 +9,27 @@ configfile: srcdir("config.yml")
 # Parse sample targets FOFN
 samples = set()
 targets = dict()
+files = dict()
+
 if  os.path.isfile(config['sample_targets']):
     with open(config['sample_targets']) as f:
         reader=csv.reader(f, delimiter="\t")
         for row in reader:
             if len(row) == 2:
                 samples.add(row[0])
-                targets[row[0]] = row[1]
+                targets[row[0]] = srcdir(row[1])
+            elif len(row) == 3:
+                samples.add(row[0])
+                targets[row[0]] = srcdir(row[2])
+                files[row[0]] = row[1]
             else :
                 print("Wrong number of columns in row: ", row, len(row))
                 pass
 
+if config['verbose']:
+    print('Samples:  ', samples)
+    print('Targets:  ', targets)
+    print('Files:    ', files)
 # If no FOFN available, check dir for folders with "Sample_" prefix
 else:
     wc, = glob_wildcards('Sample_{sample}/')
@@ -27,17 +37,26 @@ else:
     for sample in samples:
         targets[sample]=False
 
+#print(targets)
+
 rule all:
     input:
         expand("Sample_{sample}/{sample}.aligned.bam", sample = samples),
 #        expand("Sample_{sample}/{sample}_coverage.png", sample = samples),
+#        expand("Sample_{sample}/{sample}_on_target_count.tsv", sample = [x for x in samples if targets[x] is not False]),
         expand("Sample_{sample}/{sample}.phased.csv", sample = samples),
-        expand("Sample_{sample}/plot", sample = samples),
-        expand("Sample_{sample}/{sample}_on_target_count.tsv", sample = [x for x in samples if targets[x] is not False]),
+        expand("Sample_{sample}/plot", sample = samples)
 
 def get_demuxed_files(wc):
-    pb_xml = glob('Sample_'+wc.sample+'/*.consensusreadset.xml')
-    return(pb_xml)
+    if len(files)>0:    
+        query = files[wc.sample]
+        pb_xml = glob(query)
+        if (len(pb_xml) < 1): 
+            print("No Files: " + query + " | " + str(pb_xml))
+        samples.remove(wc.sample)
+        return(pb_xml)
+    else:
+        return("")
     
 rule mapping:
     input:
@@ -76,10 +95,23 @@ rule mapping:
             {input} {params.ref} {output}
         samtools index {output}
         """
+
+rule symlink_nanopore_alignment:
+    input:
+        lambda wildcards: glob("Sample_"+wildcards.sample+"/*.bam")
+    output:
+        "Sample_{sample}/{sample}.aligned.bam"
+    threads:
+        1
+    shell:
+        """
+        ln -sr {input} {output}
+        ln -sr {input}.bai {output}.bai
+        """
     
 rule mosdepth_reads:
     input:
-        rules.mapping.output
+        "Sample_{sample}/{sample}.aligned.bam"
     output:
         "Sample_{sample}/coverage/{sample}.per-base.bed.gz"
     conda:
@@ -113,7 +145,7 @@ rule plot_coverage:
 
 rule count_on_target:
     input:
-        bam = rules.mapping.output
+        bam = "Sample_{sample}/{sample}.aligned.bam"
     output:
         out = "Sample_{sample}/{sample}_on_target_count.tsv"
     conda:

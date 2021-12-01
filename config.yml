@@ -42,3 +42,5 @@ plot_allele_clusters: true
 pdf : true
 png: true
 jpg: false
+
+verbose: true
