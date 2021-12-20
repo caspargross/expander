@@ -17,3 +17,5 @@ This pipeline has been tested with ONT and PacBio reads. De novo identification 
 
 [Noise Cancelling Repeat Finder](https://github.com/makovalab-psu/NoiseCancellingRepeatFinder) : Alignment of long reads to reference
 [ULTRA](https://github.com/TravisWheelerLab/ULTRA) : Replacement for TRF, modern development, check Performance
+
+
