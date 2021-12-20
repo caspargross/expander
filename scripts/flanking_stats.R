@@ -1,7 +1,8 @@
 suppressMessages(library(tidyverse))
 suppressMessages(library(GenomicRanges))
 suppressMessages(library(Rsamtools))
-suppressMessages(library(ggbio))
+suppressMessages(library(ggplot2))
+
 source("scripts/cigar_functions.R")
 
 bam <- "/mnt/projects/research/21073N_SEQ418081722_mitopathy/Sample_21073LRa009/21073LRa009.aligned.bam"
@@ -64,7 +65,7 @@ for (i in seq_along(aln$rname)){
         q_start <- rpos_to_qpos(aln$cigar[i], f_start)
         q_end <- end_pos$qpos_end
         seq = subseq(aln$seq[i], start = q_start, end = q_end)
-    classified_reads <- add_row(classified_reads, "Read name" = aln$qname[i], "Alignment Type" = "Downstream", "q_start" = q_start, "q_end"= q_end, "seq"= as.character(seq))
+        classified_reads <- add_row(classified_reads, "Read name" = aln$qname[i], "Alignment Type" = "Downstream", "q_start" = q_start, "q_end"= q_end, "seq"= as.character(seq))
     }
 
     # Case 3: Only upstream flankin region is present
@@ -73,7 +74,7 @@ for (i in seq_along(aln$rname)){
         q_start <- 1
         q_end <- rpos_to_qpos(aln$cigar[i], f_end)
         seq = subseq(aln$seq[i], start = q_start, end = q_end)
-    classified_reads <- add_row(classified_reads, "Read name" = aln$qname[i], "Alignment Type" = "Upstream", "q_start" = q_start, "q_end"= q_end, "seq"= as.character(seq))
+        classified_reads <- add_row(classified_reads, "Read name" = aln$qname[i], "Alignment Type" = "Upstream", "q_start" = q_start, "q_end"= q_end, "seq"= as.character(seq))
     }
 
     # Case 4: other
@@ -82,16 +83,38 @@ for (i in seq_along(aln$rname)){
     }
 
 }
+classified_reads <- classified_reads %>% 
+    mutate(repeat_length = nchar(seq) - 2*FLANKING_WIDTH)
 
 # Export as text file
 write_delim(classified_reads, "sample_classified_reads.tsv", delim="\t")
 
+read_set <- as(classified_reads$seq, "BStringSet")
+names(read_set) <- classified_reads$'Read name'
+
 # Create multiple sequence alignment
 library(msa)
 repeat_msa <- msa(classified_reads$seq, method="ClustalOmega", type="dna")
-msaPrettyPrint(repeat_msa, output="asis")
-repeat_msa
+#repeat_msa <- msa(read_set, method="Muscle", type="dna")
+repeat_msa_set <- as(repeat_msa, "BStringSet")
+
+saveWidth <- getOption("width")
+options(width=200)
+sink("myAlignment.txt")
+print(repeat_msa, show ="complete", halfNrow = -1)
+sink()
+options(width=saveWidth)
+
+writeXStringSet(repeat_msa_set, file="test.fasta")
+
 View(classified_reads)
 
 # Create length histogram
+p <- ggplot(classified_reads) +
+    geom_histogram(aes(x = repeat_length))
+str(repeat_msa)
 
+# Create schematic representation
+classified_reads
+
+p2 <- ggplot

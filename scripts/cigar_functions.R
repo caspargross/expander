@@ -20,6 +20,22 @@ parse_cigar <- function(c) {
     return(cigar)
 }
 
+
+get_end_pos <- function(cigar) {
+    c <- parse_cigar(cigar)
+    iq = 0
+    ir = 0
+    for (i in seq_along(c$num)) {
+        num <- c$num[i]
+        op  <- c$op[i]
+        iq <- iq + op_consumes[[op]]['q']*num
+        ir <- ir + op_consumes[[op]]['r']*num
+        i <- i+1
+    }
+    return(list(rpos_end = ir, qpos_end = iq))
+}
+
+
 qpos_to_rpos <- function(cigar, qpos){ 
 # Calculates reference position for a given query position and cigar string
     c <- parse_cigar(cigar)
@@ -38,20 +54,6 @@ qpos_to_rpos <- function(cigar, qpos){
     overshoot <- iq - qpos
     rpos <- ir - op_consumes[[op]]['r']*overshoot
     return(unname(rpos))
-}
-
-get_end_pos <- function(cigar) {
-    c <- parse_cigar(cigar)
-    iq = 0
-    ir = 0
-    for (i in seq_along(c$num)) {
-        num <- c$num[i]
-        op  <- c$op[i]
-        iq <- iq + op_consumes[[op]]['q']*num
-        ir <- ir + op_consumes[[op]]['r']*num
-        i <- i+1
-    }
-    return(list(rpos_end = ir, qpos_end = iq))
 }
 
 rpos_to_qpos <- function(cigar, rpos){ 
@@ -74,22 +76,3 @@ rpos_to_qpos <- function(cigar, rpos){
     return(unname(qpos))
 }
 
-rpos_to_qpos <- function(cigar, qpos){ 
-# Calculates reference position for a given query position and cigar string
-    c <- parse_cigar(cigar)
-    i = 1
-    iq = 0
-    ir = 0
-    while (iq <= qpos) {
-        num <- c$num[i]
-        op  <- c$op[i]
-        iq <- iq + op_consumes[[op]]['q']*num
-        ir <- ir + op_consumes[[op]]['r']*num
-        #cat(paste("i:", i, "iq:", iq, "ir:", ir, sep="\t"), "\n")
-        i <- i+1
-    }
-    # Substract overshoot
-    overshoot <- iq - qpos
-    rpos <- ir - op_consumes[[op]]['r']*overshoot
-    return(unname(rpos))
-}
