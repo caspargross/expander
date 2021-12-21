@@ -263,6 +263,7 @@ rule plot_flanking_stats:
     conda:
         "env/R.yml"
     params:
-        target = lambda wildcards: targets[wildcards.sample]
+        target = lambda wildcards: targets[wildcards.sample],
+        flanking_width = 200
     script:
         "scripts/flankingStats.R"

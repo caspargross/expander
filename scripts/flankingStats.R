@@ -14,7 +14,7 @@ if (exists('snakemake')) {
     bam <- snakemake@input[['bam']]
     target <- snakemake@params[['target']]
     output <- snakemake@output[['tsv']]
-    flank_width <- snakemake@params[['flanking_width']]
+    FLANKING_WIDTH <- snakemake@params[['flanking_width']]
 
 } else {
     library(docopt)
@@ -22,7 +22,7 @@ if (exists('snakemake')) {
     bam <- args$'<alignment.bam>'
     target <- args$'<target.bed>'
     out_p <- args$output
-    flank_width <- args$flanking_width
+    FLANKING_WIDTH <- args$flanking_width
 }
 
 suppressMessages(library(tidyverse))
@@ -32,17 +32,14 @@ suppressMessages(library(ggplot2))
 suppressMessages(library(msa))
 
 
-source("scripts/cigarFunctions.R")
+source("/mnt/users/ahgrosc1/pipeline/expander/scripts/cigarFunctions.R")
 
 #bam <- "/mnt/projects/research/21073N_SEQ418081722_mitopathy/Sample_21073LRa009/21073LRa009.aligned.bam"
 #target <- "#Chrom	Start	End	Strand	Gene	Disease	Repeat	Rpt_Start	Rpt_End Location	Normal	Expanded	Health condition
 #chr4	39285456	39368381	-	RFC1	ataxia	AAAAG	39348424	39348479	<5x	>10x	TLD/ALS
 #"
 #FLANKING_WIDTH = 200
-
-FLANKING_WIDTH = flank_width
-
-if(exists(output)) out_p <- str_replace(output, ".reads.tsv", "")
+out_p <- str_replace(output, ".reads.tsv", "")
 
 # Load target file
 t <- read_tsv(target,
@@ -75,8 +72,8 @@ aln <- scanBam(b, param=param)[[1]]
     classified_reads <- tibble("Read name" = character(), "Alignment Type" = factor(), "q_start" = numeric(), "q_end" = numeric(), seq = character())
 
     for (i in seq_along(aln$rname)){
-        f_start <- t$repeat_start[ti] - aln$pos[i] - FLANKING_WIDTH
-        f_end <- t$repeat_end[ti] - aln$pos[i] + FLANKING_WIDTH
+        f_start <- t$repeat_start - aln$pos[i] - FLANKING_WIDTH
+        f_end <- t$repeat_end - aln$pos[i] + FLANKING_WIDTH
         end_pos <- get_end_pos(aln$cigar[i])
         
         print(paste(aln$rname[i], "flank_DS_start", f_start,  "flank_US_end", f_end))
@@ -124,7 +121,7 @@ aln <- scanBam(b, param=param)[[1]]
         mutate(repeat_length = nchar(seq) - 2*FLANKING_WIDTH)
 
     # Export as text file
-    write_delim(classified_reads, paste0(out_p, ".classified_reads.tsv"), delim="\t")
+    write_delim(classified_reads, paste0(out_p, ".reads.tsv"), delim="\t")
 
     # Create multiple sequence alignment
     read_set <- as(classified_reads$seq, "BStringSet")
@@ -169,12 +166,14 @@ aln <- scanBam(b, param=param)[[1]]
     dt$'Read name' <- as.factor(dt$'Read name')
 
     p2 <- ggplot(dt, aes(x = x, y = `Read name`, fill = repeat_sequence)) +
+        geom_hline(aes(yintercept=`Read name`, col = `Alignment Type`)) +
         geom_raster() + 
         geom_vline(xintercept = 1, col = "firebrick") + 
         geom_vline(xintercept = FLANKING_WIDTH, col = "firebrick") + 
         geom_vline(xintercept = median_full_length + FLANKING_WIDTH, col = "firebrick") + 
         geom_vline(xintercept = median_full_length + 2*FLANKING_WIDTH, col = "firebrick") + 
         scale_fill_brewer(palette = "Set2") +
+        scale_colour_brewer(palette = "Pastel2") +
         theme_classic()
     ggsave(paste0(out_p, ".sequences.png"), plot=p2, width = 25)
 
