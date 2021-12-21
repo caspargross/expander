@@ -17,3 +17,4 @@ dependencies:
         - bioconductor-bamsignals 
         - bioconductor-genomicranges
         - bioconductor-genomicalignments
+        - bioconductor-msa

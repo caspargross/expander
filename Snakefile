@@ -45,7 +45,8 @@ rule all:
 #        expand("Sample_{sample}/{sample}_coverage.png", sample = samples),
 #        expand("Sample_{sample}/{sample}_on_target_count.tsv", sample = [x for x in samples if targets[x] is not False]),
         expand("Sample_{sample}/{sample}.phased.csv", sample = samples),
-        expand("Sample_{sample}/plot", sample = samples)
+        expand("Sample_{sample}/plot", sample = samples),
+        expand("Sample_{sample}/repeat_flanking_stats/{sample}.reads.tsv", sample = samples)
 
 def get_demuxed_files(wc):
     if len(files)>0:    
@@ -254,3 +255,14 @@ rule plotRepeats:
     script:
         "scripts/plotRepeats.R"
 
+rule plot_flanking_stats:
+    input:
+        bam = "Sample_{sample}/{sample}.aligned.bam",
+    output:
+        tsv = "Sample_{sample}/repeat_flanking_stats/{sample}.reads.tsv"
+    conda:
+        "env/R.yml"
+    params:
+        target = lambda wildcards: targets[wildcards.sample]
+    script:
+        "scripts/flankingStats.R"
